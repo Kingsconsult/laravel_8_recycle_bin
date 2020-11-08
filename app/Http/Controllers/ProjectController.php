@@ -14,18 +14,12 @@ class ProjectController extends Controller
      */
     public function index(Request $request)
     {
+        $projects = Project::query();
+        if (request(('term'))) {
+            $projects->orWhere('name',  'LIKE', '%' . request('term') . '%');
+        }
+        $projects = $projects->orderBy('id', 'DESC')->paginate(10);
 
-        $projects = Project::where([
-            ['name', '!=', Null],
-            [function ($query) use ($request) {
-                if (($term = $request->term)) {
-                    $query->orWhere('name', 'LIKE', '%' . $term . '%')->get();
-                }
-            }]
-        ])
-            ->orderBy("id", "desc")
-            ->paginate(10);
-        // $projects = Project::latest()->paginate(5);
 
         return view('projects.index', compact('projects'))
             ->with('i', (request()->input('page', 1) - 1) * 5);
@@ -144,6 +138,5 @@ class ProjectController extends Controller
 
         return redirect()->route('projects.index')
             ->with('success', 'You successfully deleted the project fromt the Recycle Bin');
-
     }
 }
